@@ -211,6 +211,11 @@
           var key = this.props.id;
           var contactForm = this.props.contacts.filter(function(contact) { return contact.key == key; })[0];
 
+          // if first time use contactForm
+          //   and use Object.assign({}, this.props.updateContact, contactForm)
+          // second time
+          //   just use this.props.updateContact
+
           return (
             !contactForm
               ? React.createElement('h1', {}, 'Not Found')
