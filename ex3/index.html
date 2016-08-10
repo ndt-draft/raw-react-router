@@ -79,7 +79,11 @@
           switch (this.props.location[0]) {
             case 'contacts':
               if (this.props.location[1]) {
-                return React.createElement(ContactView, Object.assign({}, this.props, {id: this.props.location[1]}));
+                return React.createElement(ContactView, Object.assign({}, this.props, {
+                  id: this.props.location[1],
+                  onContactChange: updateContactForm,
+                  onSubmitContact: submitContactForm
+                }));
               } else {
                 return React.createElement(ContactsView, Object.assign({}, this.props, {
                   onNewContactChange: updateNewContact,
@@ -197,7 +201,10 @@
       var ContactView = React.createClass({
         propTypes: {
           contacts: React.PropTypes.array.isRequired,
-          id: React.PropTypes.string.isRequired
+          updateContact: React.PropTypes.object.isRequired,
+          id: React.PropTypes.string.isRequired,
+          onSubmitContact: React.PropTypes.func.isRequired,
+          onContactChange: React.PropTypes.func.isRequired
         },
 
         render: function() {
@@ -211,8 +218,8 @@
                   React.createElement('h1', {className: 'ContactView-title'}, 'Edit Contact'),
                   React.createElement(ContactForm, {
                     value: contactForm,
-                    onChange: function() {},
-                    onSubmit: function() {}
+                    onChange: this.props.onContactChange,
+                    onSubmit: this.props.onSubmitContact
                   })
                 )
           )
@@ -247,6 +254,20 @@
         );
       }
 
+      function updateContactForm(contact) {
+        setState({ updateContact: contact });
+      }
+
+      function submitContactForm() {
+        window.location.replace(
+          window.location.pathname + window.location.search + '#/contacts'
+        );
+
+        // handle state.newContact here
+        // use newContact to store edited data
+        // setState({contacts: updatedContacts})
+      }
+
       function navigated() {
         setState({
           location: window.location.hash.replace(/^#\/?|\/$/g, '').split('/')
@@ -261,6 +282,7 @@
           {key: '3', name: "Joe"},
         ],
         newContact: Object.assign({}, CONTACT_TEMPLATE),
+        updateContact: Object.assign({}, CONTACT_TEMPLATE),
         location: window.location.hash
       };
 
