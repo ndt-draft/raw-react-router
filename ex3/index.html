@@ -210,11 +210,11 @@
         render: function() {
           var key = this.props.id;
           var contactForm = this.props.contacts.filter(function(contact) { return contact.key == key; })[0];
+          var updateContact = this.props.updateContact;
 
-          // if first time use contactForm
-          //   and use Object.assign({}, this.props.updateContact, contactForm)
-          // second time
-          //   just use this.props.updateContact
+          if ( updateContact.edited ) {
+            contactForm = updateContact;
+          }
 
           return (
             !contactForm
@@ -260,7 +260,7 @@
       }
 
       function updateContactForm(contact) {
-        setState({ updateContact: contact });
+        setState({ updateContact: Object.assign({}, contact, {edited: true}) });
       }
 
       function submitContactForm() {
