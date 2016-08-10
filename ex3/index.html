@@ -27,6 +27,7 @@
         border-bottom: 1px solid #f0f0f0;
       }
       .ContactItem-name {
+        display: block;
         font-size: 16px;
         font-weight: bold;
         margin: 0;
@@ -69,8 +70,35 @@
     <script src="https://cdn.jsdelivr.net/react/0.14.0-rc1/react-dom.js"></script>
     <script>
       // components
+      var Application = React.createClass({
+        propTypes: {
+          location: React.PropTypes.array.isRequired
+        },
+
+        render: function() {
+          switch (this.props.location[0]) {
+            case 'contacts':
+              if (this.props.location[1]) {
+                return React.createElement(ContactView, Object.assign({}, this.props, {id: this.props.location[1]}));
+              } else {
+                return React.createElement(ContactsView, Object.assign({}, this.props, {
+                  onNewContactChange: updateNewContact,
+                  onNewContactSubmit: submitNewContact
+                }));
+              }
+              break;
+            default:
+              return React.createElement('div', {},
+                React.createElement('h1', {}, 'Not Found'),
+                React.createElement('a', {href: '#/contacts'}, 'Contacts')
+              );
+          }
+        }
+      });
+
       var ContactItem = React.createClass({
         propTypes: {
+          id: React.PropTypes.string.isRequired,
           name: React.PropTypes.string.isRequired,
           email: React.PropTypes.string.isRequired,
           description: React.PropTypes.string
@@ -79,7 +107,7 @@
         render: function() {
           return (
             React.createElement('li', {className: 'ContactItem'},
-              React.createElement('h2', {className: 'ContactItem-name'}, this.props.name),
+              React.createElement('a', {href: "#/contacts/"+this.props.id, className: 'ContactItem-name'}, this.props.name),
               React.createElement('a', {className: 'ContactItem-email', href: 'mailto:'+this.props.email}, this.props.email),
               React.createElement('div', {className: 'ContactItem-description'}, this.props.description)
             )
@@ -134,7 +162,7 @@
                 value: this.props.value.description,
                 onChange: this.onDescriptionChange
               }),
-              React.createElement('button', {type: 'submit'}, 'Add Contact')
+              React.createElement('button', {type: 'submit'}, 'Save Contact')
             )
           )
         }
@@ -151,7 +179,7 @@
         render: function() {
           var contactItemElements = this.props.contacts
             .filter(function(contact) {return contact.email})
-            .map(function(contact) {return React.createElement(ContactItem, contact)})
+            .map(function(contact) {return React.createElement(ContactItem, Object.assign({}, contact, {id: contact.key}))})
           return (
             React.createElement('div', {className: 'ContactView'},
               React.createElement('h1', {className: 'ContactView-title'}, 'Contacts'),
@@ -200,7 +228,7 @@
       }
 
       function submitNewContact() {
-        var contact = Object.assign({}, state.newContact, {key: state.contacts.length + 1, errors: {}});
+        var contact = Object.assign({}, state.newContact, {key: (state.contacts.length + 1) + '', errors: {}});
 
         if ( !contact.name ) {
           contact.errors.name = ["Please enter your new contact's name"];
@@ -228,38 +256,20 @@
       // model
       var state = {
         contacts: [
-          {key: 1, name: "James K Nelson", email: "james@jamesknelson.com", description: "Front-end Unicorn"},
-          {key: 2, name: "Jim", email: "jim@example.com"},
-          {key: 3, name: "Joe"},
+          {key: '1', name: "James K Nelson", email: "james@jamesknelson.com", description: "Front-end Unicorn"},
+          {key: '2', name: "Jim", email: "jim@example.com"},
+          {key: '3', name: "Joe"},
         ],
         newContact: Object.assign({}, CONTACT_TEMPLATE),
         location: window.location.hash
       };
 
       function setState(changes) {
-        var component;
-
         Object.assign(state, changes);
-
-        switch (state.location[0]) {
-          case 'contacts':
-            if (state.location[1]) {
-              component = React.createElement(ContactView, Object.assign({}, state, {id: state.location[1]}));
-            } else {
-              component = React.createElement(ContactsView, Object.assign({}, state, {
-                onNewContactChange: updateNewContact,
-                onNewContactSubmit: submitNewContact
-              }));
-            }
-            break;
-          default:
-            component = React.createElement('div', {},
-              React.createElement('h1', {}, 'Not Found'),
-              React.createElement('a', {href: '#/contacts'}, 'Contacts')
-            );
-        }
-
-        ReactDOM.render(component, document.getElementById('react-app'));
+        ReactDOM.render(
+          React.createElement(Application, state),
+          document.getElementById('react-app')
+        );
       }
 
       window.addEventListener('hashchange', navigated, false);
