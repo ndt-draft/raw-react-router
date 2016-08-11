@@ -264,18 +264,50 @@
       }
 
       function submitContactForm() {
-        window.location.replace(
-          window.location.pathname + window.location.search + '#/contacts'
-        );
+        var contact = Object.assign({}, state.updateContact, {errors: {}})
+            updateContacts = state.contacts;
+
+        // not edit anything, return
+        if ( !contact.edited ) {
+          window.location.replace(
+            window.location.pathname + window.location.search + '#/contacts'
+          );
+          return;
+        }
 
         // handle state.newContact here
         // use newContact to store edited data
         // setState({contacts: updatedContacts})
+        if ( !contact.name ) {
+          contact.errors.name = ["Please enter your new contact's name"];
+        }
+        if (!/.+@.+\..+/.test(contact.email)) {
+          contact.errors.email = ["Please enter your new contact's email"];
+        }
+
+        for (var i in updateContacts) {
+          if ( updateContacts[i].key === contact.key ) {
+            updateContacts[i] = contact;
+          }
+        }
+
+        if ( Object.keys(contact.errors).length === 0 ) {
+          window.location.replace(
+            window.location.pathname + window.location.search + '#/contacts'
+          );
+          setState({
+            updateContact: Object.assign({}, CONTACT_TEMPLATE),
+            contacts: updateContacts
+          });
+        } else {
+          setState({ updateContact: contact });
+        }
       }
 
       function navigated() {
         setState({
-          location: window.location.hash.replace(/^#\/?|\/$/g, '').split('/')
+          location: window.location.hash.replace(/^#\/?|\/$/g, '').split('/'),
+          updateContact: Object.assign({}, CONTACT_TEMPLATE) // reset on change
         });
       }
 
