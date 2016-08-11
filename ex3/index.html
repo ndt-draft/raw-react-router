@@ -73,6 +73,7 @@
       var Application = React.createClass({
         propTypes: {
           location: React.PropTypes.array.isRequired
+          // can use transitioning here to make app smoothly with css transitioning class
         },
 
         render: function() {
@@ -269,9 +270,7 @@
 
         // not edit anything, return
         if ( !contact.edited ) {
-          window.location.replace(
-            window.location.pathname + window.location.search + '#/contacts'
-          );
+          startNavigating('/contacts');
           return;
         }
 
@@ -292,9 +291,7 @@
         }
 
         if ( Object.keys(contact.errors).length === 0 ) {
-          window.location.replace(
-            window.location.pathname + window.location.search + '#/contacts'
-          );
+          startNavigating('/contacts');
           setState({
             updateContact: Object.assign({}, CONTACT_TEMPLATE),
             contacts: updateContacts
@@ -305,10 +302,26 @@
       }
 
       function navigated() {
+        normalizedHash = window.location.hash.replace(/^#\/?|\/$/g, '');
+
+        if (normalizedHash === '') {
+          startNavigating('/contacts');
+        } else {
+          setState({
+            transitioning: false,
+            location: normalizedHash.split('/'),
+            updateContact: Object.assign({}, CONTACT_TEMPLATE) // reset on change
+          });
+        }
+      }
+
+      function startNavigating(hash) {
         setState({
-          location: window.location.hash.replace(/^#\/?|\/$/g, '').split('/'),
-          updateContact: Object.assign({}, CONTACT_TEMPLATE) // reset on change
+          transitioning: true
         });
+        window.location.replace(
+          window.location.pathname + window.location.search + '#' + hash
+        );
       }
 
       // model
@@ -320,15 +333,18 @@
         ],
         newContact: Object.assign({}, CONTACT_TEMPLATE),
         updateContact: Object.assign({}, CONTACT_TEMPLATE),
-        location: window.location.hash
+        location: window.location.hash,
+        transitioning: false
       };
 
       function setState(changes) {
         Object.assign(state, changes);
-        ReactDOM.render(
-          React.createElement(Application, state),
-          document.getElementById('react-app')
-        );
+        if ( !state.transitioning ) {
+          ReactDOM.render(
+            React.createElement(Application, state),
+            document.getElementById('react-app')
+          );
+        }
       }
 
       window.addEventListener('hashchange', navigated, false);
